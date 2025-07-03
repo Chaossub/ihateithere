@@ -3,7 +3,7 @@ from pyrogram import Client
 from pyrogram.enums import ParseMode
 from config import API_ID, API_HASH, BOT_TOKEN
 
-# ✅ Initialize the Pyrogram Client
+# ✅ Initialize the Client BEFORE importing handlers
 app = Client(
     "SuccuBot",
     api_id=API_ID,
@@ -12,7 +12,7 @@ app = Client(
     parse_mode=ParseMode.HTML
 )
 
-# ✅ Import all handler modules
+# ✅ Now import handlers
 from handlers import (
     moderation,
     federation,
@@ -20,14 +20,19 @@ from handlers import (
     fun,
     welcome,
     help_cmd,
-    test  # Optional test command if you created a file for testing DB
+    test  # optional: only include if you have handlers/test.py
 )
 
-# ✅ Register all handlers
+# ✅ Register handlers
 moderation.register(app)
 federation.register(app)
 summon.register(app)
 fun.register(app)
 welcome.register(app)
 help_cmd.register(app)
-test.register(app)  # Safe to include even if test command
+test.register(app)  # optional, safe to include if you have it
+
+# ✅ Run the bot
+print("✅ SuccuBot is running...")
+app.run()
+
