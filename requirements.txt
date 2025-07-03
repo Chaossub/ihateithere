@@ -1,5 +1,5 @@
 pyrogram==2.0.106
 tgcrypto
-pymongo
+pymongo==4.13.2
 certifi
 python-dotenv
