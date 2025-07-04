@@ -59,3 +59,4 @@ def register(app):
         for i, (user_id, xp) in enumerate(leaderboard, start=1):
             text += f"{i}. <a href='tg://user?id={user_id}'>User</a> – {xp} XP\n"
         await message.reply(text)
+
