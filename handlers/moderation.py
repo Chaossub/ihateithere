@@ -20,10 +20,10 @@ async def warn_user(client: Client, message: Message):
 
     if warns == 3:
         await mute(client, message.chat.id, message.reply_to_message.from_user.id, duration=300)
-        await message.reply(f"🔇 User muted for 5 minutes after 3 warnings.")
+        await message.reply("🔇 User muted for 5 minutes after 3 warnings.")
     elif warns == 6:
         await mute(client, message.chat.id, message.reply_to_message.from_user.id, duration=600)
-        await message.reply(f"🔇 User muted for 10 minutes after 6 warnings.")
+        await message.reply("🔇 User muted for 10 minutes after 6 warnings.")
     else:
         await message.reply(f"⚠️ User warned. Total warnings: {warns}")
 
@@ -80,5 +80,5 @@ async def unmute_user(client: Client, message: Message):
         else:
             await message.reply("⚠️ Failed to unmute.")
     except Exception as e:
-        await message.reply(f"⚠️ Error: {
+        await message.reply(f"⚠️ Error: {e}")
 
