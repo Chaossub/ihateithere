@@ -1,9 +1,16 @@
 import os
 from pyrogram import Client
 from pyrogram.enums import ParseMode
-from config import API_ID, API_HASH, BOT_TOKEN
+from dotenv import load_dotenv
 
-# ✅ Initialize the Client BEFORE importing handlers
+# Load environment variables
+load_dotenv()
+
+API_ID = int(os.getenv("API_ID"))
+API_HASH = os.getenv("API_HASH")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+# Initialize the bot client
 app = Client(
     "SuccuBot",
     api_id=API_ID,
@@ -12,27 +19,17 @@ app = Client(
     parse_mode=ParseMode.HTML
 )
 
-# ✅ Now import handlers
+# Import handlers (all decorated directly with @Client.on_message)
 from handlers import (
+    welcome,
+    help_cmd,
     moderation,
     federation,
     summon,
-    fun,
-    welcome,
-    help_cmd,
-    test  # optional: only include if you have handlers/test.py
+    xp,
+    fun
 )
 
-# ✅ Register handlers
-moderation.register(app)
-federation.register(app)
-summon.register(app)
-fun.register(app)
-welcome.register(app)
-help_cmd.register(app)
-test.register(app)  # optional, safe to include if you have it
-
-# ✅ Run the bot
 print("✅ SuccuBot is running...")
 app.run()
 
