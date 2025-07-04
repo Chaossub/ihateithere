@@ -1,6 +1,6 @@
 import json
 import os
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.types import Message
 from handlers.utils import admin_only
 
@@ -39,22 +39,23 @@ def get_leaderboard(chat_id):
     data = load_xp()
     return sorted(data.get(chat_id, {}).items(), key=lambda x: x[1], reverse=True)[:10]
 
-@Client.on_message(filters.command("naughty") & filters.group)
-async def show_xp(client: Client, message: Message):
-    user_id = message.from_user.id
-    chat_id = message.chat.id
-    xp = get_xp(chat_id, user_id)
-    await message.reply(f"😈 Naughty XP: <b>{xp}</b>")
+def register(app):
+    @app.on_message(filters.command("naughty") & filters.group)
+    async def show_xp(client, message: Message):
+        user_id = message.from_user.id
+        chat_id = message.chat.id
+        xp = get_xp(chat_id, user_id)
+        await message.reply(f"😈 Naughty XP: <b>{xp}</b>")
 
-@Client.on_message(filters.command("leaderboard") & filters.group)
-@admin_only
-async def show_leaderboard(client: Client, message: Message):
-    chat_id = message.chat.id
-    leaderboard = get_leaderboard(chat_id)
-    if not leaderboard:
-        await message.reply("No XP data found.")
-        return
-    text = "🔥 <b>Naughty Leaderboard</b> 🔥\n\n"
-    for i, (user_id, xp) in enumerate(leaderboard, start=1):
-        text += f"{i}. <a href='tg://user?id={user_id}'>User</a> – {xp} XP\n"
-    await message.reply(text)
+    @app.on_message(filters.command("leaderboard") & filters.group)
+    @admin_only
+    async def show_leaderboard(client, message: Message):
+        chat_id = message.chat.id
+        leaderboard = get_leaderboard(chat_id)
+        if not leaderboard:
+            await message.reply("No XP data found.")
+            return
+        text = "🔥 <b>Naughty Leaderboard</b> 🔥\n\n"
+        for i, (user_id, xp) in enumerate(leaderboard, start=1):
+            text += f"{i}. <a href='tg://user?id={user_id}'>User</a> – {xp} XP\n"
+        await message.reply(text)
