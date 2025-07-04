@@ -1,88 +1,84 @@
-import json
-import os
 from functools import wraps
-from pyrogram import filters
 from pyrogram.types import Message, ChatPermissions
-from datetime import datetime, timedelta
-from config import SUPERUSERS
 
-WARN_FILE = "data/warns.json"
+# Path to warnings JSON
+WARNINGS_FILE = "data/warnings.json"
 
-def load_warns():
-    if not os.path.exists(WARN_FILE):
-        return {}
-    with open(WARN_FILE, "r") as f:
-        return json.load(f)
+# Ensure the warnings file exists
+if not os.path.exists("data"):
+    os.makedirs("data")
 
-def save_warns(warns):
-    with open(WARN_FILE, "w") as f:
-        json.dump(warns, f, indent=2)
+if not os.path.exists(WARNINGS_FILE):
+    with open(WARNINGS_FILE, "w") as f:
+        json.dump({}, f)
 
-def get_warns(user_id, chat_id):
-    warns = load_warns()
-    return warns.get(str(chat_id), {}).get(str(user_id), 0)
-
-def add_warn(user_id, chat_id):
-    warns = load_warns()
-    warns.setdefault(str(chat_id), {})[str(user_id)] = get_warns(user_id, chat_id) + 1
-    save_warns(warns)
-    return warns[str(chat_id)][str(user_id)]
-
-def reset_warns(user_id, chat_id):
-    warns = load_warns()
-    if str(chat_id) in warns and str(user_id) in warns[str(chat_id)]:
-        del warns[str(chat_id)][str(user_id)]
-        save_warns(warns)
-
-# Decorator: Only admins or SUPERUSERS
+# Admin-only decorator
 def admin_only(func):
     @wraps(func)
     async def wrapper(client, message: Message):
         user = message.from_user
-        chat = message.chat
-        if user.id in SUPERUSERS:
-            return await func(client, message)
-        member = await client.get_chat_member(chat.id, user.id)
-        if member.status in ["administrator", "creator"]:
-            return await func(client, message)
-        await message.reply("❌ You must be an admin to use this command.")
+        member = await client.get_chat_member(message.chat.id, user.id)
+        if member.status not in ("administrator", "creator"):
+            await message.reply("You need to be an admin to use this command.")
+            return
+        return await func(client, message)
     return wrapper
 
-# Check if a user is admin or owner
-async def is_admin_or_owner(client, chat_id, user_id):
+# Mute user
+async def mute(app, chat_id, user_id, duration=None):
+    permissions = ChatPermissions()
     try:
-        member = await client.get_chat_member(chat_id, user_id)
-        return member.status in ["administrator", "creator"]
-    except:
-        return False
-
-# Mute a user
-async def mute(client, chat_id, user_id, duration, message):
-    try:
-        until_date = int((datetime.utcnow() + timedelta(minutes=duration)).timestamp()) if duration else None
-        await client.restrict_chat_member(
-            chat_id=chat_id,
-            user_id=user_id,
-            permissions=ChatPermissions(),
-            until_date=until_date
-        )
-        await message.reply(f"🔇 User muted {'for ' + str(duration) + ' minutes' if duration else 'indefinitely'}.")
+        await app.restrict_chat_member(chat_id, user_id, permissions, duration)
     except Exception as e:
-        await message.reply(f"Failed to mute: <code>{e}</code>")
+        raise RuntimeError(f"Failed to mute: {e}")
 
-# Unmute a user
-async def unmute(client, chat_id, user_id, message):
+# Unmute user
+async def unmute(app, chat_id, user_id):
+    permissions = ChatPermissions(
+        can_send_messages=True,
+        can_send_media_messages=True,
+        can_send_polls=True,
+        can_send_other_messages=True,
+        can_add_web_page_previews=True,
+        can_invite_users=True
+    )
     try:
-        await client.restrict_chat_member(
-            chat_id=chat_id,
-            user_id=user_id,
-            permissions=ChatPermissions(
-                can_send_messages=True,
-                can_send_media_messages=True,
-                can_send_other_messages=True,
-                can_add_web_page_previews=True
-            )
-        )
-        await message.reply("🔊 User has been unmuted.")
+        await app.restrict_chat_member(chat_id, user_id, permissions)
     except Exception as e:
-        await message.reply(f"Failed to unmute: <code>{e}</code>")
+        raise RuntimeError(f"Failed to unmute: {e}")
+
+# Load warnings
+def load_warns():
+    with open(WARNINGS_FILE, "r") as f:
+        return json.load(f)
+
+# Save warnings
+def save_warns(data):
+    with open(WARNINGS_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+# Get warns
+def get_warns(user_id, chat_id):
+    data = load_warns()
+    return data.get(str(chat_id), {}).get(str(user_id), 0)
+
+# Add warn
+def add_warn(user_id, chat_id):
+    data = load_warns()
+    chat_id = str(chat_id)
+    user_id = str(user_id)
+    if chat_id not in data:
+        data[chat_id] = {}
+    data[chat_id][user_id] = data[chat_id].get(user_id, 0) + 1
+    save_warns(data)
+
+# Reset warns
+def reset_warns(user_id, chat_id):
+    data = load_warns()
+    chat_id = str(chat_id)
+    user_id = str(user_id)
+    if chat_id in data and user_id in data[chat_id]:
+        del data[chat_id][user_id]
+        if not data[chat_id]:
+            del data[chat_id]
+    save_warns(data)
