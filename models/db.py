@@ -1,9 +1,15 @@
 from pymongo import MongoClient
-import certifi
 from config import MONGODB_URI
 
-mongo_client = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
-succubot_db = mongo_client["succubot"]
+# Initialize MongoDB client
+mongo_client = MongoClient(MONGODB_URI, tls=True, tlsAllowInvalidCertificates=True, serverSelectionTimeoutMS=5000)
 
-# Collections:
-feds_col = succubot_db["federations"]
+# Main bot database
+db = mongo_client["succubot"]
+
+# Collections
+feds_col = db["federations"]
+users_col = db["users"]
+summon_col = db["summon"]
+xp_col = db["xp"]
+warns_col = db["warnings"]
