@@ -1,44 +1,67 @@
+print("==== [STARTING BOT] ====")
+
 import os
-from pyrogram import Client
-from pyrogram.enums import ParseMode
-from dotenv import load_dotenv
 
-# Load environment variables from .env if available
+try:
+    from pyrogram import Client
+    from pyrogram.enums import ParseMode
+    from dotenv import load_dotenv
+except Exception as import_err:
+    print("Failed to import libraries:", import_err)
+    raise
+
+print("Imports successful.")
+
+# Load environment variables from .env if present
 load_dotenv()
+print("Loaded .env (if present).")
 
-API_ID = int(os.getenv("API_ID"))
-API_HASH = os.getenv("API_HASH")
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+try:
+    API_ID = os.getenv("API_ID")
+    API_HASH = os.getenv("API_HASH")
+    BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# Initialize the bot client
-app = Client(
-    "SuccuBot",
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
-    parse_mode=ParseMode.HTML
-)
+    assert API_ID and API_HASH and BOT_TOKEN, "API_ID, API_HASH, or BOT_TOKEN is missing!"
 
-# Import all handlers so their decorators register commands
-from handlers import (
-    welcome,
-    help_cmd,
-    moderation,
-    federation,
-    summon,
-    xp,
-    fun
-)
+    API_ID = int(API_ID)
+except Exception as config_err:
+    print("Error with environment variables or config:", config_err)
+    raise
 
-# Register all handlers (if handlers use function-based registration, call .register(app))
-welcome
-help_cmd
-moderation
-federation
-summon
-xp
-fun
+print("Environment variables loaded.")
 
-print("✅ SuccuBot is running...")
-app.run()
+try:
+    app = Client(
+        "SuccuBot",
+        api_id=API_ID,
+        api_hash=API_HASH,
+        bot_token=BOT_TOKEN,
+        parse_mode=ParseMode.HTML
+    )
+    print("Pyrogram Client created.")
+except Exception as client_err:
+    print("Failed to initialize Pyrogram Client:", client_err)
+    raise
 
+try:
+    from handlers import (
+        welcome,
+        help_cmd,
+        moderation,
+        federation,
+        summon,
+        xp,
+        fun
+    )
+    print("Handlers imported successfully.")
+except Exception as handler_err:
+    print("Failed to import handlers:", handler_err)
+    raise
+
+print("==== [STARTING BOT LOOP] ====")
+
+try:
+    app.run()
+except Exception as run_err:
+    print("Bot failed to run:", run_err)
+    raise
