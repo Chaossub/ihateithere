@@ -3,7 +3,7 @@ from pyrogram import Client
 from pyrogram.enums import ParseMode
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables from .env if available
 load_dotenv()
 
 API_ID = int(os.getenv("API_ID"))
@@ -19,7 +19,7 @@ app = Client(
     parse_mode=ParseMode.HTML
 )
 
-# Import handlers (all decorated directly with @Client.on_message)
+# Import all handlers so their decorators register commands
 from handlers import (
     welcome,
     help_cmd,
@@ -29,6 +29,15 @@ from handlers import (
     xp,
     fun
 )
+
+# Register all handlers (if handlers use function-based registration, call .register(app))
+welcome
+help_cmd
+moderation
+federation
+summon
+xp
+fun
 
 print("✅ SuccuBot is running...")
 app.run()
