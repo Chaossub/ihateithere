@@ -2,7 +2,6 @@ import json
 import asyncio
 from pyrogram.types import ChatPermissions
 from pyrogram.enums import ChatMemberStatus
-from pyrogram import filters
 from pyrogram.errors import UserNotParticipant
 
 # ====== Admin-only Decorator ======
@@ -27,8 +26,16 @@ def admin_only(func):
 # ====== Mute / Unmute Functions ======
 async def mute(client, chat_id, user_id, duration=None):
     try:
-        permissions = ChatPermissions()  # Mute = no permissions
+        permissions = ChatPermissions(
+            can_send_messages=False,
+            can_send_media_messages=False,
+            can_send_polls=False,
+            can_send_other_messages=False,
+            can_add_web_page_previews=False,
+            can_invite_users=False
+        )
         await client.restrict_chat_member(chat_id, user_id, permissions)
+        print(f"✅ Muted {user_id} in {chat_id}")
         if duration:
             await asyncio.sleep(duration)
             await unmute(client, chat_id, user_id)
@@ -48,6 +55,7 @@ async def unmute(client, chat_id, user_id):
             can_invite_users=True
         )
         await client.restrict_chat_member(chat_id, user_id, permissions)
+        print(f"✅ Unmuted {user_id} in {chat_id}")
         return True
     except Exception as e:
         print(f"❌ Unmute error: {e}")
@@ -67,22 +75,4 @@ def save_warns(data=None):
     if data is None:
         data = warnings
     with open(WARN_FILE, "w") as f:
-        json.dump(data, f, indent=4)
-
-warnings = load_warns()
-
-def get_warns(chat_id, user_id):
-    return warnings.get(str(chat_id), {}).get(str(user_id), 0)
-
-def add_warn(chat_id, user_id, count):
-    chat_id = str(chat_id)
-    user_id = str(user_id)
-    if chat_id not in warnings:
-        warnings[chat_id] = {}
-    warnings[chat_id][user_id] = count
-
-def reset_warns(chat_id, user_id):
-    chat_id = str(chat_id)
-    user_id = str(user_id)
-    if chat_id in warnings and user_id in warnings[chat_id]:
-        warnings[chat_id].pop(user_id)
+        js
