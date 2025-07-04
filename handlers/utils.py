@@ -68,5 +68,27 @@ def load_warns():
 
 def save_warns():
     try:
-        with open(
+        with open(WARN_FILE, "w") as f:
+            json.dump(_warns, f)
+    except Exception as e:
+        print(f"❌ save_warns error: {e}")
+
+# These operate on a global dictionary _warns
+_warns = load_warns()
+
+def get_warns(chat_id, user_id):
+    return _warns.get(str(chat_id), {}).get(str(user_id), 0)
+
+def add_warn(chat_id, user_id, warns):
+    chat_id = str(chat_id)
+    user_id = str(user_id)
+    if chat_id not in _warns:
+        _warns[chat_id] = {}
+    _warns[chat_id][user_id] = warns
+
+def reset_warns(chat_id, user_id):
+    chat_id = str(chat_id)
+    user_id = str(user_id)
+    if chat_id in _warns and user_id in _warns[chat_id]:
+        _warns[chat_id][user_id] = 0
 
