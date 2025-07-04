@@ -4,14 +4,15 @@ from pyrogram.types import ChatPermissions
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import UserNotParticipant
 
-# ===== Admin-only Decorator =====
+WARN_FILE = "data/warnings.json"
+
+# ====== Admin-only Decorator ======
 def admin_only(func):
     async def wrapper(client, message):
         try:
             user_id = message.from_user.id
             chat_id = message.chat.id
             member = await client.get_chat_member(chat_id, user_id)
-
             if member.status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]:
                 return await func(client, message)
             else:
@@ -23,10 +24,10 @@ def admin_only(func):
             return await message.reply("⚠️ Error checking admin status.")
     return wrapper
 
-# ===== Mute / Unmute Functions =====
+# ====== Mute / Unmute Functions ======
 async def mute(client, chat_id, user_id, duration=None):
     try:
-        permissions = ChatPermissions()  # Fully restrict
+        permissions = ChatPermissions()  # No permissions = mute
         await client.restrict_chat_member(chat_id, user_id, permissions)
         if duration:
             await asyncio.sleep(duration)
@@ -52,9 +53,7 @@ async def unmute(client, chat_id, user_id):
         print(f"❌ Unmute error: {e}")
         return False
 
-# ===== Warnings JSON System =====
-WARN_FILE = "data/warnings.json"
-
+# ====== Warning System ======
 def load_warns():
     try:
         with open(WARN_FILE, "r") as f:
@@ -85,4 +84,3 @@ def reset_warns(chat_id, user_id):
     user_id = str(user_id)
     if chat_id in warnings and user_id in warnings[chat_id]:
         warnings[chat_id].pop(user_id)
-
