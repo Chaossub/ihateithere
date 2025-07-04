@@ -69,3 +69,4 @@ def register(app):
             await message.reply("🔊 User has been unmuted.")
         else:
             await message.reply("⚠️ Failed to unmute the user.")
+
