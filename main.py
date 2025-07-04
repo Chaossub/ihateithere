@@ -1,16 +1,13 @@
 import os
-from pyrogram import Client
+from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
-
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# Initialize the bot client
 app = Client(
     "SuccuBot",
     api_id=API_ID,
@@ -19,24 +16,10 @@ app = Client(
     parse_mode=ParseMode.HTML
 )
 
-# Import and register all handler modules
-from handlers import (
-    welcome,
-    help_cmd,
-    moderation,
-    federation,
-    summon,
-    xp,
-    fun
-)
-
-welcome.register(app)
-help_cmd.register(app)
-moderation.register(app)
-federation.register(app)
-summon.register(app)
-xp.register(app)
-fun.register(app)
+@app.on_message(filters.command("ping"))
+async def ping_handler(client, message):
+    print("Received /ping!")
+    await message.reply("pong!")
 
 print("✅ SuccuBot is running...")
 app.run()
