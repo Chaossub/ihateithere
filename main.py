@@ -1,9 +1,7 @@
-print("==== [STARTING BOT] ====")
-
 import os
 
 try:
-    from pyrogram import Client
+    from pyrogram import Client, filters
     from pyrogram.enums import ParseMode
     from dotenv import load_dotenv
 except Exception as import_err:
@@ -43,6 +41,12 @@ except Exception as client_err:
     print("Failed to initialize Pyrogram Client:", client_err)
     raise
 
+# --- TEST HANDLER ---
+@app.on_message(filters.command("ping"))
+async def ping_handler(client, message):
+    print("Received /ping!")
+    await message.reply("pong")
+
 try:
     from handlers import (
         welcome,
@@ -65,3 +69,4 @@ try:
 except Exception as run_err:
     print("Bot failed to run:", run_err)
     raise
+
